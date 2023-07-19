@@ -37,12 +37,18 @@ void Menu::menuInsert(){
 	
 	while (option != 0){
 		cout << "0. Back" << endl;
-		
+		cout << "1. Insert player" << endl;
+		cout << "2. Insert match" << endl;
+		cout << "3. Update match" << endl;
+		cout << "4. Insert tournament" << endl;
 		cout << "Choose an option: ";
 		cin >> option;
 		
 		switch(option){
 			case 0: 
+				break;
+			case 1:
+				db.insertPlayer();
 				break;
 			default:
 				cout << "Invalid option" << endl;
@@ -56,8 +62,10 @@ void Menu::menuSelect(){
 	
 	while (option != 0){
 		cout << "0. Back" << endl;
-		cout << "1. Select players" << endl;
-		
+		cout << "1. Player profile" << endl;
+		cout << "2. Select players from tournament" << endl;
+		cout << "3. Select matches from player" << endl;
+		cout << "4. Select matches from tournament" << endl;
 		cout << "Choose an option: ";
 		cin >> option;
 		

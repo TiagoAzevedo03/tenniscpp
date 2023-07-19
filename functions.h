@@ -9,6 +9,8 @@ class Database {
 		Database();
 		void selectPlayers();
 		void close();
+		bool insertPlayer();
+		bool checkDate(std::string date);
 	private:
 		sqlite3 *db;
 };

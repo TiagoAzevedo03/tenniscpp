@@ -64,7 +64,67 @@ bool Database::insertPlayer(){
     return true;
 }
 
+static int callback_delete(void *unused, int n, char **data, char **col){
+	if (n > 0) exists = true;
+	for (int i = 0; i < n; i++){
+		cout << col[i] << " : " << data[i] << endl;
+		if (col[i] == "nacionality") cout << endl;
+	}
+	return 0;
+}
 
+static int callback_name_id(void *unused, int n, char **data, char **col){
+	if (n == 1) exists = true;
+	return 0;
+}
+
+bool Database::deletePlayer(){
+	string name;
+	cout << "Insert the name of the player you want to delete: ";
+	cin.ignore();
+	getline(cin, name);
+	
+	string statement = "SELECT * FROM Player WHERE name LIKE '%" + name + "%'";
+	int status = sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
+	
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    
+    if (!exists){
+		cout << "No players found" << endl;
+    	return false;
+    }
+    exists = false;
+    
+    string id;
+    cout << "Choose the id of the player you want to delete: ";
+    cin >> id;
+    
+    statement = "SELECT * FROM Player WHERE id = " + id + " and name LIKE '%" + name + "%'";
+    status = sqlite3_exec(db, statement.c_str(), callback_name_id, 0, 0);
+	
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    
+    statement = "DELETE FROM Player WHERE id = " + id + " and name LIKE '%" + name + "%'";
+    status = sqlite3_exec(db, statement.c_str(), 0, 0, 0);
+    
+    if (!exists){
+    	cout << "Invalid id" << endl;
+    	return false;
+	}
+    
+    if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    cout << "Player deleted!" << endl;
+    return true;
+}
 
 
 

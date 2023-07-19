@@ -41,6 +41,7 @@ void Menu::menuInsert(){
 		cout << "2. Insert match" << endl;
 		cout << "3. Update match" << endl;
 		cout << "4. Insert tournament" << endl;
+		cout << "5. Delete player" << endl;
 		cout << "Choose an option: ";
 		cin >> option;
 		
@@ -49,6 +50,9 @@ void Menu::menuInsert(){
 				break;
 			case 1:
 				db.insertPlayer();
+				break;
+			case 5:
+				db.deletePlayer();
 				break;
 			default:
 				cout << "Invalid option" << endl;

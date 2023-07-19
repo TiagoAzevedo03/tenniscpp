@@ -11,6 +11,7 @@ class Database {
 		void close();
 		bool insertPlayer();
 		bool checkDate(std::string date);
+		bool deletePlayer();
 	private:
 		sqlite3 *db;
 };

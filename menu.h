@@ -7,6 +7,8 @@ class Menu {
 	public:
 		Menu();
 		void runMenu();
+		void menuSelect();
+		void menuInsert();
 };
 
 #endif

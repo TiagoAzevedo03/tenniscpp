@@ -1,7 +1,7 @@
 # Tennis Database Program
 
 ### Description
-The program contains a database with players, matches and tournaments where users are able to search and insert information </br>
+The program contains a database with players, matches and tournaments where users are able to search, insert and delete information </br>
 
 ### Languages used
 C++</br>
@@ -9,6 +9,7 @@ SQL</br>
 
 ### Features I want to implement
 Add tests if possible </br>
+Get all the menu functions done </br>
 
 ### How to use the project
 Clone the repository </br>

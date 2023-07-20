@@ -1,7 +1,7 @@
 # Tennis Database Program
 
 ### Description
-The program contains a database with players, matches and tournaments where users are able to search, insert and delete information </br>
+The program contains a database with players, matches and tournaments where users are able to search, insert, update and delete information </br>
 
 ### Languages used
 C++</br>

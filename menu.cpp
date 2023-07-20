@@ -57,6 +57,9 @@ void Menu::menuInsert(){
 			case 3:
 				db.updateMatch();
 				break;
+			case 4:
+				db.insertTournament();
+				break;
 			case 5:
 				db.deletePlayer();
 				break;

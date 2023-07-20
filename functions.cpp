@@ -3,6 +3,7 @@
 using namespace std;
 
 bool exists = false;
+string global_id;
 
 Database::Database(){
 	sqlite3_open("tennis.db", &db);
@@ -205,8 +206,8 @@ bool Database::updateMatch(){
 static int edition(void *unused, int n, char **data, char **col){
 	for (int i = 0; i < n; i += 3){
 		string id = data[0];
-		string year = data[1];
-		string comp = data[2];
+		string comp = data[1];
+		string year = data[2];
 		cout << id << ". " << comp << " - " << year << endl;
 	}
 	return 0;
@@ -218,6 +219,7 @@ bool Database::insertMatch(){
         cout << "Error: " << sqlite3_errmsg(db) << endl;
         return false;
     }
+    
 	cout << "For which tournament is this match? ";
 	string id; cin >> id;
 	
@@ -258,6 +260,71 @@ bool Database::insertMatch(){
     return true;
 }
 
+static int last_id(void *unused, int n, char **data, char **col){
+	string id = data[0];
+	global_id = id;
+	return 0;
+}
+
+static int comp(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 2){
+		string id = data[0];
+		string comp = data[1];
+		cout << id << ". " << comp << endl;
+	}
+	return 0;
+}
+
+bool Database::insertTournament(){
+	cout << "0. New tournament" << endl;
+	sqlite3_exec(db, "SELECT id, name FROM Competition", comp, 0, 0);
+	cout << "Select an option: ";
+	string id; cin >> id;
+	
+	if (id == "0"){
+		string name, country;
+		cout << "What is the name of the tournament? ";
+		cin.ignore(); getline (cin, name);
+		
+		cout << "Where is this tournament played? ";
+		cin.ignore(); getline (cin, country);
+		
+		string statement = "INSERT INTO Competition (name, country) VALUES ('" + name + "', '" + country + "')";
+		int status = sqlite3_exec(db, statement.c_str(), 0, 0, 0);
+		
+		if (status != SQLITE_OK) {
+	        cout << "Error: " << sqlite3_errmsg(db) << endl;
+	        return false;
+    	}
+    	
+    	statement = "SELECT id FROM Competition ORDER BY 1 DESC LIMIT 1";
+		sqlite3_exec(db, statement.c_str(), last_id, 0, 0);
+		
+		id = global_id;
+	}
+	
+	cout << "What is the year of the edition you want to insert? ";
+	string year; cin >> year;
+	
+	string statement = "SELECT id FROM Edition WHERE idCompetition = " + id + " AND year = " + year;
+	int status = sqlite3_exec(db, statement.c_str(), checkExists, 0, 0);
+	if (status != SQLITE_OK) {
+	    cout << "Error: " << sqlite3_errmsg(db) << endl;
+	    return false;
+    }
+    
+    if (exists){
+    	cout << "Edition is already in the database" << endl;
+    	return false;
+	}
+	
+	statement = "INSERT INTO Edition (year, idCompetition) VALUES ('" + year + "', '" + id + "')";
+	sqlite3_exec(db, statement.c_str(), 0, 0, 0);
+	
+	cout << "Tournament inserted!" << endl;
+	
+	return true;
+}
 
 
 void Database::close(){

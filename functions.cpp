@@ -17,7 +17,7 @@ static int callback_players(void *unused, int n, char **data, char **col){
 }
 
 void Database::selectPlayers(){ //funcao de testes
-	sqlite3_exec(db, "SELECT name FROM Player where nacionality like 'Portugal'", callback_players, 0, 0);
+	sqlite3_exec(db, "SELECT name FROM Player WHERE nacionality LIKE 'Portugal'", callback_players, 0, 0);
 }
 
 
@@ -45,7 +45,7 @@ bool Database::insertPlayer(){
 		cin >> date;
 	}
 	
-	string test = "SELECT name FROM Player where nacionality like '" + country + "' and date like '" + date + "' and name like '" + name + "'";
+	string test = "SELECT name FROM Player WHERE nacionality LIKE '" + country + "' AND date LIKE '" + date + "' AND name LIKE '" + name + "'";
 	sqlite3_exec(db, test.c_str(), checkExists, 0, 0);
 	if (exists){
 		cout << "Player already exists in the database" << endl;
@@ -66,9 +66,12 @@ bool Database::insertPlayer(){
 
 static int callback_delete(void *unused, int n, char **data, char **col){
 	if (n > 0) exists = true;
-	for (int i = 0; i < n; i++){
-		cout << col[i] << " : " << data[i] << endl;
-		if (col[i] == "nacionality") cout << endl; //.........................................................................resolver
+	for (int i = 0; i < n; i += 3){
+		string id, name, country;
+		id = data[0];
+		name = data[1];
+		country = data[2];
+		cout << id << ". " << name << " - " << country << endl;
 	}
 	return 0;
 }
@@ -84,7 +87,7 @@ bool Database::deletePlayer(){
 	cin.ignore();
 	getline(cin, name);
 	
-	string statement = "SELECT * FROM Player WHERE name LIKE '%" + name + "%'";
+	string statement = "SELECT id, name, nacionality FROM Player WHERE name LIKE '%" + name + "%'";
 	int status = sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
 	
 	if (status != SQLITE_OK) {
@@ -102,7 +105,7 @@ bool Database::deletePlayer(){
     cout << "Choose the id of the player you want to delete: ";
     cin >> id;
     
-    statement = "SELECT * FROM Player WHERE id = " + id + " and name LIKE '%" + name + "%'";
+    statement = "SELECT * FROM Player WHERE id = " + id + " AND name LIKE '%" + name + "%'";
     status = sqlite3_exec(db, statement.c_str(), check_id, 0, 0);
 	
 	if (status != SQLITE_OK) {
@@ -110,7 +113,7 @@ bool Database::deletePlayer(){
         return false;
     }
     
-    statement = "DELETE FROM Player WHERE id = " + id + " and name LIKE '%" + name + "%'";
+    statement = "DELETE FROM Player WHERE id = " + id + " AND name LIKE '%" + name + "%'";
     status = sqlite3_exec(db, statement.c_str(), 0, 0, 0);
     
     if (!exists){
@@ -147,13 +150,13 @@ static int players_name(void *unused, int n, char **data, char **col){
 }
 
 bool Database::updateMatch(){
-	string statement = "select id, date, (select name from player where id = idPlayer1), (select name from player where id = idPlayer2) from match where result is null order by match.date asc";
+	string statement = "SELECT id, date, (SELECT name FROM player WHERE id = idPlayer1), (SELECT name FROM player WHERE id = idPlayer2) FROM match WHERE result IS NULL ORDER BY match.date ASC";
 	sqlite3_exec(db, statement.c_str(), notfinished, 0, 0);
 	
 	cout << "Select the id of the match you want to update the result: ";
 	string id; cin >> id;
 	
-	statement = "select id from match where id = " + id + " and result is null";
+	statement = "SELECT id FROM match WHERE id = " + id + " AND result IS NULL";
 	sqlite3_exec(db, statement.c_str(), check_id, 0, 0);
 	
 	if (!exists){
@@ -172,7 +175,7 @@ bool Database::updateMatch(){
 		result = "Cancelled";
 	}
 	else if (option == 2){
-		statement = "select (select name from player where id = idPlayer1), (select name from player where id = idPlayer2) from match where id = " + id;
+		statement = "SELECT (SELECT name FROM player WHERE id = idPlayer1), (SELECT name FROM player WHERE id = idPlayer2) FROM match WHERE id = " + id;
 		sqlite3_exec(db, statement.c_str(), players_name, 0, 0);
 		cout << "Which player surrendered? ";
 		int op2; cin >> op2;
@@ -197,6 +200,62 @@ bool Database::updateMatch(){
 	cout << "Match updated!" << endl;
 	
 	return true;
+}
+
+static int edition(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 3){
+		string id = data[0];
+		string year = data[1];
+		string comp = data[2];
+		cout << id << ". " << comp << " - " << year << endl;
+	}
+	return 0;
+}
+
+bool Database::insertMatch(){
+	int status = sqlite3_exec(db, "SELECT id, year, (SELECT name FROM competition WHERE competition.id = idCompetition) FROM Edition", edition, 0, 0);
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+	cout << "For which tournament is this match? ";
+	string id; cin >> id;
+	
+	cout << "Insert the name of the first player: ";
+	string name; 
+	cin.ignore();
+	getline(cin, name);
+	
+	string statement = "SELECT id, name, nacionality FROM Player WHERE name LIKE '%" + name + "%'";
+	sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
+	
+	cout << "Select the id of the first player: ";
+	string p1; cin >> p1;
+	
+	cout << "Insert the name of the second player: ";
+	cin.ignore();
+	getline(cin, name);
+	
+	statement = "SELECT id, name, nacionality FROM Player WHERE name LIKE '%" + name + "%'";
+	sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
+	
+	cout << "Select the id of the second player: ";
+	string p2; cin >> p2;
+	
+	cout << "Insert the date of the game (format yyyy-mm-dd hh:mm:ss): ";
+	string date; cin.ignore();
+	getline (cin, date);
+	
+	statement = "INSERT INTO Match (idPlayer1, idPlayer2, idEdition, date) VALUES ('" + p1 + "', '" + p2 + "', '" + id + "', '" + date + "')";
+	status = sqlite3_exec(db, statement.c_str(), 0, 0, 0);
+	
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    
+    cout << "Match inserted!" << endl;
+    return true;
 }
 
 

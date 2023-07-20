@@ -51,6 +51,9 @@ void Menu::menuInsert(){
 			case 1:
 				db.insertPlayer();
 				break;
+			case 2:
+				db.insertMatch();
+				break;
 			case 3:
 				db.updateMatch();
 				break;

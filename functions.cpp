@@ -68,12 +68,12 @@ static int callback_delete(void *unused, int n, char **data, char **col){
 	if (n > 0) exists = true;
 	for (int i = 0; i < n; i++){
 		cout << col[i] << " : " << data[i] << endl;
-		if (col[i] == "nacionality") cout << endl;
+		if (col[i] == "nacionality") cout << endl; //.........................................................................resolver
 	}
 	return 0;
 }
 
-static int callback_name_id(void *unused, int n, char **data, char **col){
+static int check_id(void *unused, int n, char **data, char **col){
 	if (n == 1) exists = true;
 	return 0;
 }
@@ -103,7 +103,7 @@ bool Database::deletePlayer(){
     cin >> id;
     
     statement = "SELECT * FROM Player WHERE id = " + id + " and name LIKE '%" + name + "%'";
-    status = sqlite3_exec(db, statement.c_str(), callback_name_id, 0, 0);
+    status = sqlite3_exec(db, statement.c_str(), check_id, 0, 0);
 	
 	if (status != SQLITE_OK) {
         cout << "Error: " << sqlite3_errmsg(db) << endl;
@@ -124,6 +124,79 @@ bool Database::deletePlayer(){
     }
     cout << "Player deleted!" << endl;
     return true;
+}
+
+static int notfinished(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 4){
+		string id = data[0];
+		string date = data[1];
+		string p1 = data[2];
+		string p2 = data[3];
+		cout << "id " << id << ": " << p1 << " - " << p2 << endl << date << endl;
+	}
+	return 0;
+}
+
+static int players_name(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 2){
+		string p1 = data[0];
+		string p2 = data[1];
+		cout << "1. " << p1 << endl << "2. " << p2 << endl;
+	}
+	return 0;
+}
+
+bool Database::updateMatch(){
+	string statement = "select id, date, (select name from player where id = idPlayer1), (select name from player where id = idPlayer2) from match where result is null order by match.date asc";
+	sqlite3_exec(db, statement.c_str(), notfinished, 0, 0);
+	
+	cout << "Select the id of the match you want to update the result: ";
+	string id; cin >> id;
+	
+	statement = "select id from match where id = " + id + " and result is null";
+	sqlite3_exec(db, statement.c_str(), check_id, 0, 0);
+	
+	if (!exists){
+		cout << "Invalid id" << endl;
+		return false;
+	}
+	
+	cout << "1. Cancelled" << endl;
+	cout << "2. Surrender" << endl;
+	cout << "3. Finished" << endl;
+	cout << "Choose an option: ";
+	int option; cin >> option;
+	string result;
+	
+	if (option == 1){
+		result = "Cancelled";
+	}
+	else if (option == 2){
+		statement = "select (select name from player where id = idPlayer1), (select name from player where id = idPlayer2) from match where id = " + id;
+		sqlite3_exec(db, statement.c_str(), players_name, 0, 0);
+		cout << "Which player surrendered? ";
+		int op2; cin >> op2;
+		if(op2 == 1){
+			result = "S1";
+		}
+		else result = "S2";
+	}		
+	else if (option == 3){
+		cout << "Insert the result (format p1-p2): ";
+		cin >> result;
+	}
+	else {
+		cout << "Invalid option" << endl;
+	}
+	
+	cout << result << endl;
+	
+	statement = "UPDATE Match SET result = '" + result + "' WHERE id = " + id;
+	sqlite3_exec(db, statement.c_str(), 0, 0, 0);
+	
+	cout << "Match updated!" << endl;
+	
+	return true;
 }
 
 

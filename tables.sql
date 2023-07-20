@@ -37,7 +37,7 @@ CREATE TABLE Match(
     idPlayer1 INTEGER,
     idPlayer2 INTEGER,
     idEdition INTEGER,
-    state TEXT DEFAULT 'Finished',
+    result TEXT,
     date DATETIME,
     FOREIGN KEY (idPlayer1) REFERENCES Player(id),
     FOREIGN KEY (idPlayer2) REFERENCES Player(id),

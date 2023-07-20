@@ -9,7 +9,7 @@ void Menu::runMenu(){
 	
 	while (true){
 		cout << "0. Exit" << endl;
-		cout << "1. Insert data" << endl;
+		cout << "1. Edit data" << endl;
 		cout << "2. Search data" << endl;
 		
 		cout << "Choose an option: ";
@@ -50,6 +50,9 @@ void Menu::menuInsert(){
 				break;
 			case 1:
 				db.insertPlayer();
+				break;
+			case 3:
+				db.updateMatch();
 				break;
 			case 5:
 				db.deletePlayer();

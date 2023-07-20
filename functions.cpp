@@ -105,11 +105,6 @@ bool Database::insertPlayer(){
     return true;
 }
 
-static int check_id(void *unused, int n, char **data, char **col){
-	if (n == 1) exists = true;
-	return 0;
-}
-
 bool Database::deletePlayer(){
 	string name;
 	cout << "Insert the name of the player you want to delete: ";
@@ -135,7 +130,7 @@ bool Database::deletePlayer(){
     cin >> id;
     
     statement = "SELECT * FROM Player WHERE id = " + id + " AND name LIKE '%" + name + "%'";
-    status = sqlite3_exec(db, statement.c_str(), check_id, 0, 0);
+    status = sqlite3_exec(db, statement.c_str(), checkExists, 0, 0);
 	
 	if (status != SQLITE_OK) {
         cout << "Error: " << sqlite3_errmsg(db) << endl;
@@ -186,7 +181,7 @@ bool Database::updateMatch(){
 	string id; cin >> id;
 	
 	statement = "SELECT id FROM match WHERE id = " + id + " AND result IS NULL";
-	sqlite3_exec(db, statement.c_str(), check_id, 0, 0);
+	sqlite3_exec(db, statement.c_str(), checkExists, 0, 0);
 	
 	if (!exists){
 		cout << "Invalid id" << endl;

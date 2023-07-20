@@ -10,7 +10,6 @@ SQL</br>
 ### Features I want to implement
 Create functions to save code repetition </br>
 Add tests if possible </br>
-Get all the menu functions done </br>
 
 ### How to use the project
 Clone the repository </br>

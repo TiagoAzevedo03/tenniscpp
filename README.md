@@ -8,6 +8,7 @@ C++</br>
 SQL</br>
 
 ### Features I want to implement
+Create functions to save code repetition </br>
 Add tests if possible </br>
 Get all the menu functions done </br>
 

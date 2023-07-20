@@ -62,7 +62,6 @@ bool Database::selectPlayer(){
     return true;
 }
 
-
 static int checkExists(void *unused, int n, char **data, char **col){
 	if (n > 0) exists = true;
 	return 0;
@@ -235,8 +234,8 @@ bool Database::updateMatch(){
 static int edition(void *unused, int n, char **data, char **col){
 	for (int i = 0; i < n; i += 3){
 		string id = data[0];
-		string comp = data[1];
-		string year = data[2];
+		string year = data[1];
+		string comp = data[2];
 		cout << id << ". " << comp << " - " << year << endl;
 	}
 	return 0;
@@ -394,6 +393,44 @@ bool Database::matchesPlayer(){
     
     statement = "SELECT date, result, (SELECT name FROM player WHERE id = idPlayer1), (SELECT name FROM player WHERE id = idPlayer2), (SELECT name FROM Competition WHERE Competition.id = (SELECT idCompetition from Edition where Edition.id = idEdition)) FROM match WHERE idPlayer1 = " + id + " OR idPlayer2 = " + id + " ORDER BY match.date ASC";
 	sqlite3_exec(db, statement.c_str(), matches, 0, 0);
+	
+	return true;
+}
+
+bool Database::matchesComp(){
+	sqlite3_exec(db, "SELECT id, year, (SELECT name FROM competition WHERE competition.id = idCompetition) FROM Edition", edition, 0, 0);
+    
+	cout << "For which tournament is this match? ";
+	string id; cin >> id;
+	
+	string statement = "SELECT date, result, (SELECT name FROM player WHERE id = idPlayer1), (SELECT name FROM player WHERE id = idPlayer2), (SELECT name FROM Competition WHERE Competition.id = (SELECT idCompetition from Edition where Edition.id = idEdition)) FROM match WHERE idEdition = " + id + " ORDER BY match.date ASC";
+	sqlite3_exec(db, statement.c_str(), matches, 0, 0);
+	
+	return true;
+}
+
+static int player_list(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 2){
+		string country, name;
+		name = data[0];
+		country = data[1];
+		cout << name << " - " << country << endl;
+	}
+	return 0;
+}
+
+bool Database::compPlayers(){
+	sqlite3_exec(db, "SELECT id, year, (SELECT name FROM competition WHERE competition.id = idCompetition) FROM Edition", edition, 0, 0);
+    
+	cout << "Select the tournament: ";
+	string id; cin >> id;
+	
+	string statement = "SELECT distinct Player.name, nacionality from Player JOIN Match on Player.id = Match.idPlayer1 or Player.id = Match.idPlayer2 JOIN Edition on idEdition = Edition.id JOIN Competition ON idCompetition = Competition.id WHERE Edition.id = " + id;
+	int status = sqlite3_exec(db, statement.c_str(), player_list, 0, 0);
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
 	
 	return true;
 }

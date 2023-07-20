@@ -16,6 +16,8 @@ class Database {
 		bool insertMatch();
 		bool insertTournament();
 		bool matchesPlayer();
+		bool matchesComp();
+		bool compPlayers();
 	private:
 		sqlite3 *db;
 };

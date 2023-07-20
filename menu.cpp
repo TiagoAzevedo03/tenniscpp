@@ -86,7 +86,10 @@ void Menu::menuSelect(){
 			case 0: 
 				break;
 			case 1:
-				db.selectPlayers();
+				db.selectPlayer();
+				break;
+			case 3:
+				db.matchesPlayer();
 				break;
 			default:
 				cout << "Invalid option" << endl;

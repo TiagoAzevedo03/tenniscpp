@@ -9,16 +9,57 @@ Database::Database(){
 	sqlite3_open("tennis.db", &db);
 }
 
-
-static int callback_players(void *unused, int n, char **data, char **col){
-	for (int i = 0; i < n; i++){
-		cout << data[i] << endl;
+static int callback_delete(void *unused, int n, char **data, char **col){
+	if (n > 0) exists = true;
+	for (int i = 0; i < n; i += 2){
+		string id, name;
+		id = data[0];
+		name = data[1];
+		cout << id << ". " << name << endl;
 	}
 	return 0;
 }
 
-void Database::selectPlayers(){ //funcao de testes
-	sqlite3_exec(db, "SELECT name FROM Player WHERE nacionality LIKE 'Portugal'", callback_players, 0, 0);
+
+static int player(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 3){
+		string name, country, date;
+		name = data[0];
+		country = data[1];
+		date = data[2];
+		cout << name << " - " << country << endl;
+		cout << "Date of Birth: " << date << endl;
+	}
+	return 0;
+}
+
+bool Database::selectPlayer(){
+	string name;
+	cout << "Insert the name of the player: ";
+	cin.ignore();
+	getline(cin, name);
+	
+	string statement = "SELECT id, name FROM Player WHERE name LIKE '%" + name + "%'";
+	int status = sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
+	
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    
+    if (!exists){
+		cout << "No player found" << endl;
+    	return false;
+    }
+    
+    string id;
+    cout << "Choose the id of the player: ";
+    cin >> id;
+    
+    statement = "SELECT name, nacionality, date FROM Player WHERE id = " + id;
+    status = sqlite3_exec(db, statement.c_str(), player, 0, 0);
+    
+    return true;
 }
 
 
@@ -65,18 +106,6 @@ bool Database::insertPlayer(){
     return true;
 }
 
-static int callback_delete(void *unused, int n, char **data, char **col){
-	if (n > 0) exists = true;
-	for (int i = 0; i < n; i += 3){
-		string id, name, country;
-		id = data[0];
-		name = data[1];
-		country = data[2];
-		cout << id << ". " << name << " - " << country << endl;
-	}
-	return 0;
-}
-
 static int check_id(void *unused, int n, char **data, char **col){
 	if (n == 1) exists = true;
 	return 0;
@@ -88,7 +117,7 @@ bool Database::deletePlayer(){
 	cin.ignore();
 	getline(cin, name);
 	
-	string statement = "SELECT id, name, nacionality FROM Player WHERE name LIKE '%" + name + "%'";
+	string statement = "SELECT id, name FROM Player WHERE name LIKE '%" + name + "%'";
 	int status = sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
 	
 	if (status != SQLITE_OK) {
@@ -130,7 +159,7 @@ bool Database::deletePlayer(){
     return true;
 }
 
-static int notfinished(void *unused, int n, char **data, char **col){
+static int search_match(void *unused, int n, char **data, char **col){
 	for (int i = 0; i < n; i += 4){
 		string id = data[0];
 		string date = data[1];
@@ -152,7 +181,7 @@ static int players_name(void *unused, int n, char **data, char **col){
 
 bool Database::updateMatch(){
 	string statement = "SELECT id, date, (SELECT name FROM player WHERE id = idPlayer1), (SELECT name FROM player WHERE id = idPlayer2) FROM match WHERE result IS NULL ORDER BY match.date ASC";
-	sqlite3_exec(db, statement.c_str(), notfinished, 0, 0);
+	sqlite3_exec(db, statement.c_str(), search_match, 0, 0);
 	
 	cout << "Select the id of the match you want to update the result: ";
 	string id; cin >> id;
@@ -326,6 +355,48 @@ bool Database::insertTournament(){
 	return true;
 }
 
+static int matches(void *unused, int n, char **data, char **col){
+	for (int i = 0; i < n; i += 5){
+		string date = data[0];
+		string result = (data[i + 1] ? data[i + 1] : "Not played yet");
+		string p1 = data[2];
+		string p2 = data[3];
+		string comp = data[4];
+		cout << comp << endl;
+		cout << p1 << " - " << p2 << " (" << result << ")" << endl;
+		cout << date << endl;
+	}
+	return 0;
+}
+
+bool Database::matchesPlayer(){
+	string name;
+	cout << "Insert the name of the player: ";
+	cin.ignore();
+	getline(cin, name);
+	
+	string statement = "SELECT id, name FROM Player WHERE name LIKE '%" + name + "%'";
+	int status = sqlite3_exec(db, statement.c_str(), callback_delete, 0, 0);
+	
+	if (status != SQLITE_OK) {
+        cout << "Error: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    
+    if (!exists){
+		cout << "No player found" << endl;
+    	return false;
+    }
+    
+    string id;
+    cout << "Choose the id of the player: ";
+    cin >> id;
+    
+    statement = "SELECT date, result, (SELECT name FROM player WHERE id = idPlayer1), (SELECT name FROM player WHERE id = idPlayer2), (SELECT name FROM Competition WHERE Competition.id = (SELECT idCompetition from Edition where Edition.id = idEdition)) FROM match WHERE idPlayer1 = " + id + " OR idPlayer2 = " + id + " ORDER BY match.date ASC";
+	sqlite3_exec(db, statement.c_str(), matches, 0, 0);
+	
+	return true;
+}
 
 void Database::close(){
 	sqlite3_close(db);

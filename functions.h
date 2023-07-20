@@ -7,7 +7,7 @@
 class Database {
 	public:
 		Database();
-		void selectPlayers();
+		bool selectPlayer();
 		void close();
 		bool insertPlayer();
 		bool checkDate(std::string date);
@@ -15,6 +15,7 @@ class Database {
 		bool updateMatch();
 		bool insertMatch();
 		bool insertTournament();
+		bool matchesPlayer();
 	private:
 		sqlite3 *db;
 };
